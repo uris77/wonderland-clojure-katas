@@ -42,6 +42,14 @@
   (or (highest-rank player1-card player2-card)
       (highest-suit player1-card player2-card)))
 
+(defn winner-takes-card
+  [winner-cards card]
+  (->> (-> winner-cards
+           (conj card)
+           (conj (first cards)))
+       rest
+       vec))
+
 (defn play-game [player1-cards player2-cards]
   (loop [cards1 player1-cards
          cards2 player2-cards]
@@ -49,23 +57,15 @@
           card2  (first cards2)
           winner (play-round card1 card2)]
       (if (= card1 winner)
-        (let [c1 (->> (-> cards1
-                          (conj card2)
-                          (conj card1))
-                      (drop 1)
-                      vec) 
-              c2 (vec (drop 1 cards2))]
-          (if (= 0 (count c2))
+        (let [c1 (winner-takes-card cards1 card2) 
+              c2 (vec (rest cards2))]
+          (if (empty? c2)
             {:player1 c1
              :player2 c2}
             (recur c1 c2)))
-        (let [c2 (->> (-> cards2
-                          (conj card1)
-                          (conj card2))
-                      (drop 1)
-                      vec)
-              c1 (vec (drop 1 cards1))]
-          (if (= 0 (count c1))
+        (let [c2 (winner-takes-card cards2 card1)
+              c1 (vec (rest cards1))]
+          (if (empty? c1)
             {:player1 c1
              :player2 c2}
             (recur c1 c2)))))))
